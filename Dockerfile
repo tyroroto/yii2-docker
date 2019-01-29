@@ -1,36 +1,41 @@
-FROM php:7.0-apache
+FROM php:7.2-apache
 # COPY config/php.ini /usr/local/etc/php/
 
 RUN apt-get update \
     && apt-get -y install \
-            libicu52 \
             libicu-dev \
-
+            libjpeg-dev \
+            libjpeg62-turbo-dev \
+		    libpng-dev \
+            libfreetype6-dev \
+            imagemagick \
+            libmagickwand-dev \
             # Required by composer
             git \
             zlib1g-dev \
-        --no-install-recommends \
+        --no-install-recommends
 
     # Required extension
-    && docker-php-ext-install -j$(nproc) intl \
-
+RUN docker-php-ext-install -j$(nproc) intl \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include --with-png-dir=/usr/include --with-jpeg-dir=/usr/include \
+    && docker-php-ext-install -j$(nproc) gd \
     # Additional common extensions
     && docker-php-ext-install -j$(nproc) opcache \
-    && pecl install apcu-5.1.8 && docker-php-ext-enable apcu \
+    && pecl install apcu-5.1.8 imagick && docker-php-ext-enable apcu imagick \
 
     # Required by composer
     && docker-php-ext-install -j$(nproc) zip \
 
-    && docker-php-ext-install pdo pdo_mysql \
-
+    && docker-php-ext-install pdo pdo_mysql
+    
     # Cleanup to keep the images size small
-    && apt-get purge -y \
+RUN apt-get purge -y \
         icu-devtools \
         libicu-dev \
+        libpng-dev \
         zlib1g-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
-
 RUN a2enmod rewrite
 COPY config/php.ini /usr/local/etc/php/
 RUN chmod -R 777 /var/www
