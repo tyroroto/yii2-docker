@@ -1,6 +1,4 @@
 FROM php:7.2-apache
-# COPY config/php.ini /usr/local/etc/php/
-
 RUN apt-get update \
     && apt-get -y install \
             libicu-dev \
@@ -38,7 +36,3 @@ RUN apt-get purge -y \
     && rm -r /var/lib/apt/lists/*
 RUN a2enmod rewrite
 COPY config/php.ini /usr/local/etc/php/
-RUN chmod -R 777 /var/www
-
-
-ADD app-config.conf /etc/apache2/sites-enabled/000-default.conf
